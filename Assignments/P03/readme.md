@@ -5,9 +5,8 @@
 
 |   #   | File Link       | Assignment Description              |  
 | :---: | --------------  | --------------------------------    |
-|     1 | Banner          |  Banner                             |
-|     2 | main.py         |                                     |
-|     3 | cities.geojson  | cities                              |
+|     1 | main.py         |                                     |
+|    2  | cities.geojson  | cities                              |
 |     4 | ufodata.csv     | ufo data                            |
 |     5 | states.geojson  | states                              |
 |     6 | distance.csv    | distance between cities             |
