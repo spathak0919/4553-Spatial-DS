@@ -5,10 +5,10 @@
 
 |   #   | File Link       | Assignment Description              |  
 | :---: | --------------  | --------------------------------    |
-|     1 | main.py         |                                     |
+|     1 | main.py         |                                   |
 |    2  | cities.geojson  | cities                              |
 |     4 | ufodata.csv     | ufo data                            |
-|     5 | states.geojson  | states                              |
+|     5 | BetterUFOData.csv  | states                              |
 |     6 | distance.csv    | distance between cities             |
 |     7 | avg.json        | average                             |
 
