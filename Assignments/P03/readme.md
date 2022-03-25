@@ -6,7 +6,7 @@ Allows us to create polygons around each city to use as "ufo containers". . Voro
 
 |   #   | File Link       | Assignment Description              |  
 | :---: | --------------  | --------------------------------    |
-|     1 | main.py         |                                   |
+|     1 | main.py         | process json files                            |
 |    2  | cities.geojson  | cities                              |
 |     4 | ufodata.csv     | ufo data                            |
 |     5 | BetterUFOData.csv  | states                              |
