@@ -1,67 +1,92 @@
-import csv, json
-import pandas as pd
-import numpy as np
-import geopandas as gp
+import csv,json
+from statistics import mean
+import geopandas
+from numpy import sort
 from shapely.geometry import Point
 
 
-"""def haversine(lat1, lon1, lat2, lon2):
-    dLat = (lat2 - lat1) * pi / 180.0
-    dLon = (lon2 - lon1) * pi / 180.0
-    lat1 = lat1*pi/180.0
-    lat2 = lat2*pi/180.0
-    a = (pow(sin(dLat/2),2) + pow(sin(dLon/2),2) * cos(lat1) * cos(lat2))
-    c = 2 * asin(sqrt(a))
-    return c*3950"""
+with open('cities.geojson') as f:
+    cities = json.load(f)
 
-f = open("cities.geojson")
-data = json.load(f)
+ufo = []
+
+with open('ufo_data.csv') as f:         // open ufo data file
+    csvfile = csv.DictReader(f, delimiter = ',')
+
+    for row in csvfile:
+     
+        ufo.append(row)                 //csv in array
 
 points = []
-ctnames = []
-for feature in data["features"]:
+names = []
+
+for feature in cities["features"]:
     if feature["geometry"]["type"] == "Point":
         points.append(feature["geometry"]["coordinates"])
-        ctnames.append(feature["properties"]["city"])
+        names.append(feature['properties']['city'])
 
 cities = []
-# ctdist = []
 for point in points:
     cities.append(Point(point))
-    """ctdist.append()
-    for pt in points:
-        ds = haversine(point.x,point.y,pt.x,pt.y)
-        ctdist.append()"""
 
-gs = gp.GeoSeries(cities)
 
-with open("distance.csv","w",newline='') as out:
-    writer = csv.writer(out)
-    row = []
-    for i in range(len(cities)):
-        writer.writerow(gs.distance(cities[i],align=False))
+geo = geopandas.GeoSeries(cities)  // series of geo
 
-uf = open("ufos.csv")
-ufos = pd.read_csv(uf)
-gu = gp.GeoDataFrame(ufos, geometry=gp.points_from_xy(ufos.lon,ufos.lat))
+output = []
 
-# turn point arrays into geoseries
-gsU = gu.geometry
+for i in range(len(geo)):
+    dist = []
 
-#loop thru cities for 100 closest ufos
-ufodist = []
-for i in range(len(gs)):
-    a = gsU.distance(gs[i])
-    a = a.values # just distances for sorting
-    a = np.sort(a)
-    hundo = a[0:100] # get top 100
-    avg = np.average(hundo)
-    ct = {
-        "city": ctnames[i],
-        "lon": gs[i].x,
-        "lat": gs[i].y,
-        "avgdist": avg
+    arr = geo.distance(geo[i])
+
+    #converts result to an array
+    arr = arr.values 
+
+    for i in range(len(arr)):
+        if arr[i] != 0:
+          
+            dist.append((names[i], arr[i])) // store all distances
+    dist.sort(key= lambda x: x[1]) // nearest cities sort
+
+    city = {
+        'city': names[i],
+        'longitude': geo[i].x,
+        'latitude': geo[i].y,
+        'distance': dist
     }
-    ufodist.append(ct)
 
-json.dump(ufodist, open("ufoavg.json","w"),indent=4,separators=(",",": "))
+    output.append(city)
+with open('distances.json', 'w') as f:
+    f.write(json.dumps(output))
+
+points = []
+for dics in ufo:
+    points.append(Point(float(dics['lon']), float(dics['lat'])))
+
+geoufo = geopandas.GeoSeries(points)
+
+output = []
+for i in range(len(geo)):
+    dist = []
+
+    arr = geoufo.distance(geo[i])
+
+    arr = arr.values
+    arr = sort(arr)
+    top = arr[0:100]
+
+    #finds the average of the 100 closest ufos
+    avg = round(mean(top), 18)
+
+    city = {
+        'city': names[i],
+        'longitude': geo[i].x,
+        'latitude': geo[i].y,
+        'avgufo': avg
+    }
+
+    output.append(city)
+
+
+with open('average_ufo.json', 'w') as f:  // average
+    f.write(json.dumps(output))   
