@@ -1,6 +1,6 @@
-#PO2:No Path Still - Rtree Nearest Neighbor with UFO's
+# PO3: Vornoi- Real World Use Case
 
-## Distance between each cities
+## The voronoi diagram, allows us to create polygons around each city to use as "ufo containers" for lack of a better term
 
 
 |   #   | File Link       | Assignment Description              |  
