@@ -1,6 +1,6 @@
 # PO3: Vornoi- Real World Use Case
 
-## The voronoi diagram, allows us to create polygons around each city to use as "ufo containers" for lack of a better term
+### The voronoi diagram, allows us to create polygons around each city to use as "ufo containers" for lack of a better term
 
 
 |   #   | File Link       | Assignment Description              |  
