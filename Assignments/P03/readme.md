@@ -11,8 +11,6 @@ Allows us to create polygons around each city to use as "ufo containers". . Voro
 |     3 | ufodata.csv     | ufo data                            |
 |     4 | BetterUFOData.csv  | states                              |
 |     5 |us_border_shp   | shapes            |
-|     6 | FixCSV.py        | UFO sightings                           |
-|     7 | PointsInPolys.json        | Output of polygon                          |
 
 
 ###  Requirements
