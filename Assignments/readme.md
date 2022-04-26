@@ -8,6 +8,6 @@
 |   P03 | Vornoi        | Real World Use Case                 |
 |   P04 | Worldle      |  Spatial Game Helper Classes                |
 |   P05 | Spatial Game API     |  Spatial Game Helper Classes         
-|   P06 | Worldle      |  Spatial Game Helper Classes         
+|   P06 | Worldle      |  Spatial Data         
 |   P07 | Quad tree      |  Bounding Box query        
-|   P08 | Worldle      |  Spatial Game Helper Classes         
+|   P08 | HeatMap   | Coloring Polygons     
