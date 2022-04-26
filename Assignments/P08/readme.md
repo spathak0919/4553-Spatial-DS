@@ -1,7 +1,7 @@
 # P08 : Coloring Polygons
 
 ## Description 
-## To Create a geoJson file that shades each state based on the population in cities.json.
+## To Create a geoJson file, goal is to color each state based on the population in cities.json.
 
 ## Files
 
