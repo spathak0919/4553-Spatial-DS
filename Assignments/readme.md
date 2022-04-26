@@ -7,3 +7,7 @@
 |   P02 | No Path Still | RTree Nearest Neighbour with UFO    |
 |   P03 | Vornoi        | Real World Use Case                 |
 |   P04 | Worldle      |  Spatial Game Helper Classes                |
+|   P05 | Spatial Game API     |  Spatial Game Helper Classes         
+|   P06 | Worldle      |  Spatial Game Helper Classes         
+|   P07 | Worldle      |  Spatial Game Helper Classes         
+|   P08 | Worldle      |  Spatial Game Helper Classes         
