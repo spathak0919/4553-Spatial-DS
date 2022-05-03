@@ -2,6 +2,6 @@
 
 # FILES
 
-##  main.py
-##  web.html
-##  cites.geojson
+1. main.py
+2. web.html
+3. cites.geojson
