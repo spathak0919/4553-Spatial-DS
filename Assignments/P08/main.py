@@ -9,7 +9,7 @@
 
 import json
 
-
+## adding cities
 def append_color(state_data, state_population):
 
     color_tinit_list = ["#e6f1fb","#cde3f7","#b4d6f3","#9bc8ef","#82bbeb","#69ade7","#509fe3","#3792df","#1e84db","#0677d7"]
