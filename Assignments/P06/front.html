@@ -1,12 +1,14 @@
+
 <!DOCTYPE html>
 <html>
-
-<head>
-    <title>GeoJSON viewer</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <title>SPATIAL GAME</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-        integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-        crossorigin="" />
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
+    
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
         integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
         crossorigin=""></script>
@@ -80,263 +82,246 @@
             margin: 0px;
         }
     </style>
-</head>
+    
+  </head>
 
-<body>
+  <body>
     <div id="map"></div>
+    <h1>SPATIAL GAME</h1>
+    <h3>PRESS COUNTRY AND SUBMIT</h2>
+    
     <div id="text">
-        <h1>SPATIAL GAME</h1>
-        <label for="country">Select Countries:</label>
+      <label for="country">Choose a Country:</label>
 
-        <select name="country" id="country">
-            
-        </select>
-        <div>
-            <table id="history">
-                <row>
-                    <th>Country</th>
-                    <th>Center Point</th>
-                    <th>Distance to Target</th>
-                </row>
+      <select name="country" id="country"></select>
 
-            </table>
-        </div>
+      <input type="button" id="submit" value="Submit"/>
 
-        <input type="button" id="submit" value="Submit">
-        <hr>
+      <br>
+      <label for="dir">Next Country:</label>
+      <p id="dir" style="display:inline"></p>
+      <br>
+
+      <br>
+      <label for="guesses">Country :</label>
+      <ul id = "guesses"></ul>
     </div>
 
     <script>
 
         myStorage = window.localStorage;
 
-        let map = L.map("map").setView([0, 0], 1);
+        let bound = [[[90, 180], [-90, -180]]] // get the bounding box of the map
+        // let the map fall within the bounds of the box iteself
+        let map = L.map("map", {maxBounds: bound, maxBoundsViscosity: 1.0}).setView([0, 0], 0);
+        //initialize the level of zoom inside of the map
+        map.setMinZoom(3)
+        map.setMaxZoom(8)
         L.tileLayer("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_nolabels/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attribution/">CartoDB</a>',
-            subdomains: "abcd",
-            maxZoom: 19
-        }).addTo(map);
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attribution/">CartoDB</a>',
+                    subdomains: "abcd",
+                    maxZoom: 19
+                }).addTo(map);
 
-        // Add Layer Group
+                // Add Layer Group
         let layers = L.layerGroup().addTo(map);
+        
+        document.getElementById("submit").addEventListener("click", DisplayPoly);
 
-
-
-        function chooseRandomTarget(data) {
-            url = "http://127.0.0.1:8080/randomCountry/"
-            apiCall(url, saveTargetLocation)
-        }
-
-        function saveTargetLocation(data) {
-            console.log(data);
-            localStorage.setItem('target', JSON.stringify(data));
-            console.log(JSON.parse(localStorage.getItem('target')));
-        }
-
-        function appendTableRow(name, location, distance) {
-
-            var table = document.getElementById("history");
-
-            table.style.visibility = "visible";
-
-            // Create an empty <tr> element and add it to the 1st position of the table:
-            var row = table.insertRow();
-
-            // Insert new cells (<td> elements) at the 1st and 2nd position of the "new" <tr> element:
-            var cell1 = row.insertCell(0);
-            var cell2 = row.insertCell(1);
-            var cell3 = row.insertCell(2);
-
-            // Add some text to the new cells:
-            cell1.innerHTML = name;
-            cell2.innerHTML = location;
-            cell3.innerHTML = distance;
-
-        }
-
-        /**
-         * populateDropDown: populates the dropdown list with countries
-         * 
-         * Params:
-         *     data : array of countries
-         */
-        function populateDropDown(data) {
-            var select = document.getElementById("country");
-
-            select.innerHTML = "";
-
-            for (var i = 0; i < data.length; i++) {
-                var opt = data[i];
-                var el = document.createElement("option");
-                el.textContent = opt;
-                el.value = opt;
-                select.appendChild(el);
-            }
-        }
-
-        /**
-         * getDropDownCountryName: returns the "selected" country name from the dropdown list
-         * 
-         * Params:
-         *     None
-         */
-        function getDropDownCountryName() {
-            // get a reference to the dropdown element
-            var e = document.getElementById("country");
-
-            // pull the selected name from the list
-            var name = e.options[e.selectedIndex].text;
-
-            // return the name
-            return name;
-        }
-
-        /**
-         * updatePolygonCenter: Writes the center point passed in to a "hidden" element to be used 
-         *      for the maps fly feature
-         * 
-         * Params:
-         *     None
-         */
-        function updatePolygonCenter(data) {
-            console.log("updatePolygonCenter");
-            console.log(data);
-
-            // add center point of polygon to local storage
-            localStorage.setItem('polygonCenterPoint', data);
-
-            let distance = localStorage.getItem('distance');
-            console.log("distance: " + distance)
-
-            appendTableRow(localStorage.getItem('lastCountry'), localStorage.getItem('polygonCenterPoint'), distance)
-
-            map.flyTo(L.latLng(data[1], data[0]), 5);
-        }
-
-        /**
-         * updateLastCountryName: Print the last country selected on the web page at the proper element
-         */
-        function updateLastCountryName(name) {
-            console.log("updateLastCountryName");
-            console.log(name);
-
-            // save country name to local storage
-            localStorage.setItem('lastCountry', name);
-        }
-
-
-        /**
-         * showGeoJson: Show the geojson object we got from our Fast Api backend.
-         */
-        function showGeoJson(data) {
-            console.log("showGeoJson");
-
-            result = {
-                "type": "FeatureCollection",
-                "features": [data['featureCollection']['features'][0]['feature']]
-            }
-            L.geoJSON(result).addTo(layers);
-
-        }
-
-        /**
-         * apiCall: Calls the api we have been working on in order to "get" data and display it.
-         * 
-         * Params:
-         *     string   url         : the route we want to call to get data
-         *     function callback    : this is the function to run after we get the data
-         */
-        function apiCall(url, callback) {
+        let CountryToGuess = null // country list not initialized yet until the list is loaded
+        var guesses = []// create empty list for the guesses
+                                                                                                    
+        function CountryList() 
+        {
+            let url = "http://127.0.0.1:8080/CountryList/";
             fetch(url)
-                .then(function (response) {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Something went wrong');
+                .then(function (response) 
+                {
+                    return response.json();// 
                 })
-                .then(function (data) {
-                    console.log(data);
-                    callback(data);
-                }).catch((error) => {
-                    let message = "<h1>Error: Connecting to: " + url + "</h1>"
-                    message += "<h1>Is your API running?</h1>"
-                    document.getElementById("map").innerHTML = message;
-                    console.log(error)
+                .then(function (data) 
+                {
+                    var CountryNameList = document.getElementById("country");
+                    
+                    // drop down list
+
+                    names = data['countries'].sort();
+
+                    CountryNameList.innerHTML = "";
+
+                    for (var i = 0; i < names.length; i++) //for loop to loop through the names array
+                    {
+                        var Option = data['countries'][i];
+                        var DropDownElement = document.createElement("option");
+                        DropDownElement.textContent = Option;
+                        DropDownElement.value = Option;
+                        CountryNameList.appendChild(DropDownElement);
+                    }
+
+                    CountryToGuess = names[Math.floor(Math.random() * names.length)] // CountryNameList a random country for the user to guess
                 });
         }
+        
+                                                                                                                            
+        function DisplayPoly() // now to actually display the country from the guesses
+        {
+            var e = document.getElementById("country");
+            var name = e.options[e.selectedIndex].text;
+            var PolyGonColor = null
+            
 
-        /**
-         * apiGetCountryNames: Calls the api using the route to get all the country names.
-         */
-        function apiGetCountryNames() {
-            console.log("apiGetCountryNames");
+            if(name == CountryToGuess)// if the correct country is guessed,change the PolyGonColor of the country to green
+            {
+                PolyGonColor = '#00FF00'//default PolyGonColor
+                document.getElementById("country").disabled = true;//disable the dropdown list so the user can't guess again
+                document.getElementById("submit").disabled = true; //disable the submit button so the user can't guess again
+                guesses.push([name, 0])
+                
+            }
+            else
+            {
+                //get the api call for the distance between the two countries
+                fetch('http://127.0.0.1:8080/FindDistance/{FirstCountry},{SecondCountry}?FirstPoly=' + name + '&SecondPoly=' + CountryToGuess)
+                .then(function (response) 
+                {
+                    return response.json();//grab the url response
+                })
+                .then(function (data) 
+                {
+                    CountryDistance = Math.floor(data['distance'])
+                    console.log(data)
+                    console.log(CountryDistance)
 
-            // url to get country names
-            let url = "http://127.0.0.1:8080/country_names/";
+                   
+                    if(CountryDistance/1000 <= 1)
+                        {   
+                            PolyGonColor="#FC09F3" // pink color
+                        }
+                    else if(CountryDistance/1000 <=2)
+                    {
+                        PolyGonColor = "CCFFCC"// getting even lighter green
+                    }
+                    else if(CountryDistance/1000 <= 3)
+                    {
+                        PolyGonColor = "#FFFF66"// getting even lighter yellow
+                    }
+                    else if(CountryDistance/1000 <= 4)
+                    {
+                        PolyGonColor = "#66FFFF"// purple
+                    }
+                    else
+                    {
+                        PolyGonColor = "#FF0000"// red
+                    }
+                
+                    guesses.push([name, CountryDistance])
+                });
 
-            // call the api with the appropriate url and callback function to run on success
-            apiCall(url, populateDropDown)
+               
+                                                                                
+                //read the api call and get the distance between the two countries based on the url
+                fetch('http://127.0.0.1:8080/FindDirection/{Country1},{Country2}?CountryNo1=' + CountryToGuess + '&CountryNo2=' + name)
+                .then(function (response) 
+                {
+                    return response.json();//get the json response
+                })
+                .then(function (data) // with the data returned process it
+                {
+                    let text = null// at the end of the function, this will be the text that will be displayed
+                    
+                    if(data['CountryDirection'] == 'North')// northern direction
+                    {
+                        text = CountryDistance+' miles  ⬆️ '// display the north arrow
+                    }
+                    else if(data['CountryDirection'] == 'South')// south direction
+                    {
+                        text = CountryDistance+' miles ⬇️ '// display the south arrow
+                    }
+                    else if(data['CountryDirection'] == 'East')//eastern direction
+                    {
+                        text = CountryDistance+' miles ➡️ '// display the east arrow
+                    }
+                    else if(data['CountryDirection'] == 'West')// western direction
+                    {
+                        text = CountryDistance+' miles ⬅️ '// display the west arrow
+                    }
+                    if(data['CountryDirection'] == 'NorthWest')//northwestern direction
+                    {
+                        text = CountryDistance+' miles ↖️ '// display the north west arrow
+                    }
+                    else if(data['CountryDirection'] == 'SouthWest')// to the southwest
+                    {
+                        text = CountryDistance+' miles ↙️ '// display the south west arrow
+                    }
+                    else if(data['CountryDirection'] == 'SouthEast')// or the southeeast direction
+                    {
+                        text = CountryDistance+' miles ↘️ '//    display the south east arrow
+                    }
+                    else // if none of these are true, then will be in the northeast direction
+                    {
+                        text = CountryDistance+' miles ↗️ ' // northeastern direction
+                    }
+                    
+
+                    document.getElementById("dir").textContent = text;// diaplying the actual direction icon in the html
+                });
+            }
+            
+                                                                                                                                
+            let url = "http://127.0.0.1:8080/Geojson/" + name; // get the url of the geojson api call to get the country choice polygon
+
+            fetch(url)
+                .then(function (response) 
+                {
+                    return response.json();//wait for the response to return
+                })
+                .then(function (data) // with the data returned process it
+                {
+                    console.log(data)// see the data returned is correct
+                    result = data // the result is the geojson of the country choice
+                    console.log(result) // see if what the api call returns is correct
+                    let defaultStyle = 
+                    {
+                        fillColor: PolyGonColor,
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 1
+                    }
+
+                    //add this to the layers of the map inside of the loccal host
+                    L.geoJSON(result, {style: defaultStyle}).addTo(layers);
+                    //sorting the list in the order of closest to furthest
+                    guesses.sort(([a, b], [c, d]) => b - d);
+                    //these will be displayed inside of the inner html over to the right of the map
+                    document.getElementById("guesses").innerHTML = "";
+
+                    for(i = 0; i < guesses.length; i++)
+                    {
+                        var CountryNameList = document.getElementById("guesses");
+                        var DropDownElement = document.createElement("li");
+                        DropDownElement.textContent = guesses[i][0];
+                        DropDownElement.value = guesses[i][0];
+                        CountryNameList.appendChild(DropDownElement);
+                    }
+                    //the following will be displayed in the inner html over to the left of the map
+                    //and once the country is selected the options will be removed
+                    selectbox = document.getElementById("country")
+                    var i;
+                    for(i=0; i < selectbox.options.length; i++)
+                    {
+                        if(selectbox.options[i].selected)
+                        {
+                            selectbox.remove(i);
+                        }
+                    }
+                });
         }
-
-        function storeDistanceBearing(data) {
-            localStorage.setItem('distance', data['distance']);
-            localStorage.setItem('bearing', data['bearing']);
-        }
-
-        /**
-         * apiGetpolygonCenterPoint: Returns the "center point" of a given country. I'm using it so 
-         *     I can pan and zoom to that location
-         */
-        function apiGetpolygonCenterPoint(name) {
-            console.log("apiGetpolygonCenter");
-
-            console.log(name);
-            // build the url to get the center of that country
-            let url = "http://127.0.0.1:8080/countryCenter/" + name + "?raw=true";
-
-            // call the api with the appropriate url and callback function to run on success
-            apiCall(url, updatePolygonCenter)
-
-            let target = localStorage.getItem('target')
-            target = JSON.parse(target)
-
-
-            let url2 = "http://127.0.0.1:8080/centroidRelations/?start=" + name + "&end=" + target['name'];
-
-            // call the api with the appropriate url and callback function to run on success
-            apiCall(url2, storeDistanceBearing)
-        }
-
-        /**
-         * apiGetCountryPoly: Returns the "polygon" of the specified country (captured) from the
-         *     dropdown list.
-         */
-        function apiGetCountryPoly() {
-            console.log("apiGetCountryPoly");
-
-            let name = getDropDownCountryName();
-            let url = "http://127.0.0.1:8080/country/" + name;
-
-            // call api to get country shape and then send it to the showGeoJson function as a callback
-            apiCall(url, showGeoJson);
-
-            // now get the center point of the poly so we can pan and zoom
-            apiGetpolygonCenterPoint(name);
-
-            // save country name to local storage
-            localStorage.setItem('lastCountry', name);
-
-        }
-
-        // add event listener to the submit button to call api and get a country polygon
-        document.getElementById("submit").addEventListener("click", apiGetCountryPoly);
-
-        // load drop down with existing country names
-        // erasing the old cars :) 
-        window.onload = function () {
-            apiGetCountryNames();
-            chooseRandomTarget();
+        
+        window.onload = function () 
+        {
+            CountryList();
         };
+       
     </script>
 </body>
 
